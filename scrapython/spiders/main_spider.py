@@ -1,4 +1,3 @@
-from bs4 import BeautifulSoup
 import sys
 import scrapy
 import re
@@ -51,7 +50,6 @@ class MainSpider(scrapy.Spider):
         phone_no = []
         phones = re.findall(
             r'((?:^(?:\+\d{1})\s(?:\(\d{3}\))\s(?:\d{3})\-(?:\d{4})(?:\.))|(?:\(\d{3}\)\s*?\-?\.?(?:\d{3})\s*?\-?(?:\d{4}))|(?:(?:\+)(?:\d{2})\s*?(?:\d{2})\s*?)(?:\d{3,4})\s*\-?(?:\d{4})|(?:^(?:\(\d{2,3}\)\s*?(?:\d{3,5})\s*?\-?(?:\d{4})))|(?:^(?:\d{2,3})\s*?\-?(?:\d{3,5})\s*?\-?(?:\d{3,4})\s*?\-?\.*?(?:\d{3,4})?)|(?:^(?:\+?\s*?\d{1})\s*?\-?(?:\(\d{3}\))\s*?\-?\.?(?:\d{3,4})\s*?\-?\.?(?:\d{1,})\s*?\#?\.?(?:\d{1,}))|(?:^(?:\+?\s*?\d{1})\s*?\-?(?:\(\d{3}\))\s*?\-?\.?(?:\d{3,4})\s*?\-?\.?(?:\d{1,})\s*?\#?\.?(?:\d{1,})$)|(?:^(?:\+)\s*?\-?(?:\d{1,})\s*\-?(?:\d{1,})\s*\-?(?:\d{1,})\s*\-?(?:\d{1,})\s*\-?(?:\d{1,})$)|(?:^(?:\d{3,4})\s*?\-?(?:\d{3,4})$)|(?:^(?:\d{1})\s*?\-?(?:\d{3})\s*?\-?(?:\d{3})\s*?\-?(?:\d{3,4})$)|(?:(?:^\s*)\+\s*(?:\d{1})\s*?\-?(?:\(\d{3}\))\s*?\-?(?:\d{3})\s*?\-?(?:\d{2})\s*?\-?(?:\d{2})))', html_as_str, flags=re.M)
-        # logging.log(logging.WARNING, phones)
         for num in phones:
             num = num.strip()
             num = num.lstrip()
@@ -68,17 +66,16 @@ class MainSpider(scrapy.Spider):
         return main_url
 
     def extract_images(self, response, main_url):
-        soup = BeautifulSoup(response.body, 'lxml')
-        imgs_parsed = soup.find_all("img", {"src": True})
+        imgs_parsed = response.css('img').xpath('@src').getall()
         imgs = []
         for img in imgs_parsed:
-            if 'http' in img['src']:
-                if re.findall(r'[a-zA-z0-9logo]+', img['src'], flags=re.M):
-                    imgs.append(img['src'])
+            if 'http' in img:
+                if re.findall(r'[a-zA-z0-9logo]+', img, flags=re.M):
+                    imgs.append(img)
                     return imgs
             else:
-                if re.findall(r'[a-zA-z0-9logo]+', img['src'], flags=re.M):
-                    src = str(main_url) + str(img['src'])
+                if re.findall(r'[a-zA-z0-9logo]+', img, flags=re.M):
+                    src = str(main_url) + str(img)
                     imgs.append(src)
                     return imgs
 
